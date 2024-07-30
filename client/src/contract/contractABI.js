@@ -1,35 +1,37 @@
 export const contractABI = [
-  {
-    inputs: [],
-    stateMutability: "nonpayable",
-    type: "constructor",
-  },
+  { inputs: [], stateMutability: "payable", type: "constructor" },
   {
     anonymous: false,
     inputs: [
       {
         indexed: true,
         internalType: "address",
-        name: "employee",
+        name: "sender",
         type: "address",
       },
       {
         indexed: true,
-        internalType: "enum EmploymentPackage.Type",
-        name: "documentType",
+        internalType: "address",
+        name: "recipient",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "enum EmploymentPackage.PackageType",
+        name: "packageType",
         type: "uint8",
       },
       {
         indexed: false,
-        internalType: "bytes",
-        name: "encodedDocumentContent",
-        type: "bytes",
+        internalType: "string",
+        name: "documentHash",
+        type: "string",
       },
       {
         indexed: false,
-        internalType: "uint256",
-        name: "timestamp",
-        type: "uint256",
+        internalType: "bytes",
+        name: "signature",
+        type: "bytes",
       },
     ],
     name: "DocumentAdded",
@@ -40,55 +42,38 @@ export const contractABI = [
     inputs: [
       {
         indexed: true,
-        internalType: "address",
-        name: "employee",
-        type: "address",
-      },
-      {
-        indexed: true,
         internalType: "uint256",
-        name: "documentId",
+        name: "index",
         type: "uint256",
       },
       {
-        indexed: true,
-        internalType: "address",
-        name: "signer",
-        type: "address",
-      },
-      {
         indexed: false,
-        internalType: "bool",
-        name: "signedByEmployee",
-        type: "bool",
-      },
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "signedByEmployer",
-        type: "bool",
+        internalType: "bytes",
+        name: "signature",
+        type: "bytes",
       },
     ],
     name: "DocumentSigned",
     type: "event",
   },
   {
+    inputs: [],
+    name: "_employer",
+    outputs: [{ internalType: "address", name: "", type: "address" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
+      { internalType: "address", name: "_recipient", type: "address" },
       {
-        internalType: "address",
-        name: "_employee",
-        type: "address",
-      },
-      {
-        internalType: "enum EmploymentPackage.Type",
-        name: "_docType",
+        internalType: "enum EmploymentPackage.PackageType",
+        name: "_packageType",
         type: "uint8",
       },
-      {
-        internalType: "bytes",
-        name: "_encodedDocumentContent",
-        type: "bytes",
-      },
+      { internalType: "string", name: "_documentHash", type: "string" },
+      { internalType: "bytes", name: "_signature", type: "bytes" },
+      { internalType: "uint256", name: "_expiry", type: "uint256" },
     ],
     name: "addDocument",
     outputs: [],
@@ -96,132 +81,24 @@ export const contractABI = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    name: "employees",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [],
-    name: "employer",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    name: "employmentDocuments",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "id",
-        type: "uint256",
-      },
-      {
-        internalType: "enum EmploymentPackage.Type",
-        name: "docType",
-        type: "uint8",
-      },
-      {
-        internalType: "bytes",
-        name: "encodedDocumentContent",
-        type: "bytes",
-      },
-      {
-        internalType: "uint256",
-        name: "timestamp",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "employee",
-        type: "address",
-      },
-      {
-        internalType: "bool",
-        name: "signedByEmployee",
-        type: "bool",
-      },
-      {
-        internalType: "bool",
-        name: "signedByEmployer",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getAllEmploymentDocuments",
+    name: "getDocuments",
     outputs: [
       {
         components: [
+          { internalType: "address", name: "sender", type: "address" },
+          { internalType: "address", name: "recipient", type: "address" },
           {
-            internalType: "uint256",
-            name: "id",
-            type: "uint256",
-          },
-          {
-            internalType: "enum EmploymentPackage.Type",
-            name: "docType",
+            internalType: "enum EmploymentPackage.PackageType",
+            name: "packageType",
             type: "uint8",
           },
-          {
-            internalType: "bytes",
-            name: "encodedDocumentContent",
-            type: "bytes",
-          },
-          {
-            internalType: "uint256",
-            name: "timestamp",
-            type: "uint256",
-          },
-          {
-            internalType: "address",
-            name: "employee",
-            type: "address",
-          },
-          {
-            internalType: "bool",
-            name: "signedByEmployee",
-            type: "bool",
-          },
-          {
-            internalType: "bool",
-            name: "signedByEmployer",
-            type: "bool",
-          },
+          { internalType: "string", name: "documentHash", type: "string" },
+          { internalType: "bytes", name: "employerSignature", type: "bytes" },
+          { internalType: "bytes", name: "employeeSignature", type: "bytes" },
+          { internalType: "uint256", name: "createdOn", type: "uint256" },
+          { internalType: "uint256", name: "lastModified", type: "uint256" },
+          { internalType: "uint256", name: "expiry", type: "uint256" },
         ],
         internalType: "struct EmploymentPackage.EmploymentDocument[]",
         name: "",
@@ -233,106 +110,15 @@ export const contractABI = [
   },
   {
     inputs: [],
-    name: "getEmployer",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
+    name: "numberOfDocuments",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
     stateMutability: "view",
     type: "function",
   },
   {
     inputs: [
-      {
-        internalType: "address",
-        name: "_employee",
-        type: "address",
-      },
-    ],
-    name: "getEmploymentDocuments",
-    outputs: [
-      {
-        components: [
-          {
-            internalType: "uint256",
-            name: "id",
-            type: "uint256",
-          },
-          {
-            internalType: "enum EmploymentPackage.Type",
-            name: "docType",
-            type: "uint8",
-          },
-          {
-            internalType: "bytes",
-            name: "encodedDocumentContent",
-            type: "bytes",
-          },
-          {
-            internalType: "uint256",
-            name: "timestamp",
-            type: "uint256",
-          },
-          {
-            internalType: "address",
-            name: "employee",
-            type: "address",
-          },
-          {
-            internalType: "bool",
-            name: "signedByEmployee",
-            type: "bool",
-          },
-          {
-            internalType: "bool",
-            name: "signedByEmployer",
-            type: "bool",
-          },
-        ],
-        internalType: "struct EmploymentPackage.EmploymentDocument[]",
-        name: "",
-        type: "tuple[]",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "nextDocumentId",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "numberOfDocs",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "_documentId",
-        type: "uint256",
-      },
+      { internalType: "uint256", name: "_index", type: "uint256" },
+      { internalType: "bytes", name: "_signature", type: "bytes" },
     ],
     name: "signDocument",
     outputs: [],

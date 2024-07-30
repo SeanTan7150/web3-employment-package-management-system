@@ -2,22 +2,13 @@
 
 import { Inter } from "next/font/google";
 import "./globals.css";
-import {
-  metamaskWallet,
-  ThirdwebProvider,
-  useContract,
-} from "@thirdweb-dev/react";
-import {
-  ContractContextProvider,
-  useContractContext,
-} from "@/context/contract";
-import { Sidebar } from "@/components/navigation/Sidebar";
-import { usePathname, useSearchParams } from "next/navigation";
-import { readUser } from "./api/users/service";
-import { PackageFormContextProvider as OfferLetterPackageFormContextProvider } from "@/context/offer/packageForm";
+import { ThirdwebProvider } from "thirdweb/react";
+import { ThirdwebProvider as ThirdwebProviderDev } from "@thirdweb-dev/react";
+import { ContractContextProvider } from "@/context/contract";
+import { usePathname } from "next/navigation";
 import { MdClose } from "react-icons/md";
-import { useEffect, useState } from "react";
-import { PackageFormContextProvider } from "@/context/promotion/packageForm";
+import { useState } from "react";
+import { Navbar } from "@/components/navigation/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -37,77 +28,74 @@ export default function RootLayout({
   const [toastMessage, setToastMessage] = useState("");
 
   const path = usePathname();
-  const searchParams = useSearchParams();
+  // const searchParams = useSearchParams();
 
   const isNavigationHidden = path === "/register";
-
-  const status = searchParams.get("status");
 
   const handleClose = () => {
     setShowToast(false);
   };
 
-  useEffect(() => {
-    switch (status) {
-      case "201":
-        setToastMessage("Package crafted successfully!");
-        setShowToast(true);
-        break;
-      case "202":
-        setToastMessage("Package signed successfully!");
-        setShowToast(true);
-        break;
-      case "403":
-        setToastMessage(
-          "Oops! Looks like you don't have the magic key for that page."
-        );
-        setShowToast(true);
-        break;
-      default:
-        setShowToast(false);
-    }
-  }, [status]);
+  // useEffect(() => {
+  //   const status = searchParams.get("status");
+
+  //   switch (status) {
+  //     case "201":
+  //       setToastMessage("Package crafted successfully!");
+  //       setShowToast(true);
+  //       break;
+  //     case "202":
+  //       setToastMessage("Package signed successfully!");
+  //       setShowToast(true);
+  //       break;
+  //     case "403":
+  //       setToastMessage(
+  //         "Oops! Looks like you don't have the magic key for that page."
+  //       );
+  //       setShowToast(true);
+  //       break;
+  //     default:
+  //       setShowToast(false);
+  //   }
+  // }, [status]);
 
   return (
-    <ThirdwebProvider
+    <ThirdwebProviderDev
       activeChain="sepolia"
-      clientId="afc1299eed27c91d590634fa178bf6e2"
-      supportedWallets={[metamaskWallet({ recommended: true })]}
+      clientId={process.env.NEXT_PUBLIC_THIRDWEB_CLIENT}
     >
-      <ContractContextProvider>
-        <OfferLetterPackageFormContextProvider>
-          <PackageFormContextProvider>
-            <html lang="en">
-              <head>
-                <title>Ethiring</title>
-                <meta
-                  name="description"
-                  content="Employment package manager web 3.0"
-                />
-              </head>
-              <body className={inter.className}>
-                {!isNavigationHidden ? (
-                  <>
-                    <Sidebar />
-                    <main className="p-4">
-                      {children}
-                      <ToastItem
-                        message={toastMessage}
-                        show={showToast}
-                        onClose={handleClose}
-                        status={status}
-                      />
-                    </main>
-                  </>
-                ) : (
-                  <main>{children}</main>
-                )}
-              </body>
-            </html>
-          </PackageFormContextProvider>
-        </OfferLetterPackageFormContextProvider>
-      </ContractContextProvider>
-    </ThirdwebProvider>
+      <ThirdwebProvider>
+        <ContractContextProvider>
+          <html lang="en">
+            <head>
+              <title>Ethiring</title>
+              <meta
+                name="description"
+                content="Employment package manager web 3.0"
+              />
+            </head>
+            <body className={inter.className}>
+              {!isNavigationHidden ? (
+                <>
+                  <Navbar />
+                  <main>
+                    {children}
+                    {/* <ToastItem
+                      message={toastMessage}
+                      show={showToast}
+                      onClose={handleClose}
+                      status={status}
+                    /> */}
+                  </main>
+                </>
+              ) : (
+                <main>{children}</main>
+              )}
+            </body>
+          </html>
+        </ContractContextProvider>
+      </ThirdwebProvider>
+    </ThirdwebProviderDev>
   );
 }
 
@@ -127,7 +115,6 @@ const ToastItem = ({ message, show, onClose, status }: ToastItemProps) => {
       className={`text-sm flex items-center fixed bottom-4 right-4 p-4 border ${color} rounded shadow-lg transition-transform transform`}
     >
       {message}
-
       <button type="button" className="ml-4" onClick={onClose}>
         <MdClose size={20} />
       </button>

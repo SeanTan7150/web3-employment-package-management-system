@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0;
+pragma solidity >=0.8.24;
 
 contract EmploymentPackage {
-    enum Type {
+    enum PackageType {
         Offer,
         Promotion,
         Resignation,
@@ -25,167 +25,129 @@ contract EmploymentPackage {
     }
 
     struct EmploymentDocument {
-        uint256 id;
-        Type docType;
-        bytes encodedDocumentContent;
-        uint256 timestamp;
-        address employee;
-        bool signedByEmployee;
-        bool signedByEmployer;
+        address sender;
+        address recipient;
+        PackageType packageType;
+        string documentHash;
+        bytes employerSignature;
+        bytes employeeSignature;
+        uint256 createdOn;
+        uint256 lastModified;
+        uint256 expiry;
     }
 
     event DocumentAdded(
-        address indexed employee,
-        Type indexed documentType,
-        bytes encodedDocumentContent,
-        uint timestamp
+        address indexed sender,
+        address indexed recipient,
+        PackageType packageType,
+        string documentHash,
+        bytes signature
     );
-    event DocumentSigned(
-        address indexed employee,
-        uint256 indexed documentId,
-        address indexed signer,
-        bool signedByEmployee,
-        bool signedByEmployer
-    );
+    event DocumentSigned(uint256 indexed index, bytes signature);
 
-    address public employer;
-    mapping(address => EmploymentDocument[]) public employmentDocuments;
-    address[] public employees;
+    address public immutable _employer;
+    mapping(uint256 => EmploymentDocument) private documents;
+    uint256 public numberOfDocuments = 0;
 
-    uint256 public numberOfDocs = 0;
-    uint256 public nextDocumentId = 1;
-
-    constructor() {
-        employer = msg.sender;
-    }
-
-    function getEmployer() public view returns (address) {
-        return employer;
+    constructor() payable {
+        _employer = msg.sender;
     }
 
     function addDocument(
-        address _employee,
-        Type _docType,
-        bytes calldata _encodedDocumentContent
+        address _recipient,
+        PackageType _packageType,
+        string calldata _documentHash,
+        bytes calldata _signature,
+        uint256 _expiry
     ) public {
-        if (employmentDocuments[_employee].length == 0) {
-            employees.push(_employee);
-        }
+        address sender = msg.sender;
 
-        if (msg.sender == employer) {
+        if (sender == _employer) {
+            // Employer cannot upload resignation or retirement letters
             require(
-                _docType != Type.Resignation && _docType != Type.Retirement,
-                "Employer cannot add resignation or retirement documents"
+                _packageType != PackageType.Resignation,
+                "Employer restricted"
             );
-
-            EmploymentDocument
-                memory newEmploymentDocument = EmploymentDocument({
-                    id: nextDocumentId,
-                    docType: _docType,
-                    encodedDocumentContent: _encodedDocumentContent,
-                    timestamp: block.timestamp,
-                    employee: _employee,
-                    signedByEmployee: false,
-                    signedByEmployer: true
-                });
-            employmentDocuments[_employee].push(newEmploymentDocument);
-            numberOfDocs++;
-            nextDocumentId++;
-
-            emit DocumentAdded(
-                _employee,
-                _docType,
-                _encodedDocumentContent,
-                block.timestamp
+            require(
+                _packageType != PackageType.Retirement,
+                "Employer restricted"
             );
         } else {
+            // Employee can only upload resignation or retirement letters
             require(
-                _docType == Type.Resignation || _docType == Type.Retirement,
-                "Employees can only add resignation or retirement documents"
-            );
-
-            EmploymentDocument
-                memory newEmploymentDocument = EmploymentDocument({
-                    id: nextDocumentId,
-                    docType: _docType,
-                    encodedDocumentContent: _encodedDocumentContent,
-                    timestamp: block.timestamp,
-                    employee: _employee,
-                    signedByEmployee: true,
-                    signedByEmployer: false
-                });
-            employmentDocuments[_employee].push(newEmploymentDocument);
-            numberOfDocs++;
-            nextDocumentId++;
-
-            emit DocumentAdded(
-                _employee,
-                _docType,
-                _encodedDocumentContent,
-                block.timestamp
+                _packageType == PackageType.Resignation ||
+                    _packageType == PackageType.Retirement,
+                "Employee restricted"
             );
         }
+
+        EmploymentDocument storage newDocument = documents[numberOfDocuments];
+
+        newDocument.sender = msg.sender;
+        newDocument.recipient = _recipient;
+        newDocument.packageType = _packageType;
+        newDocument.documentHash = _documentHash;
+        newDocument.employerSignature = sender == _employer
+            ? _signature
+            : bytes("");
+        newDocument.employeeSignature = sender != _employer
+            ? _signature
+            : bytes("");
+        newDocument.createdOn = block.timestamp;
+        newDocument.lastModified = block.timestamp;
+        newDocument.expiry = _expiry;
+
+        ++numberOfDocuments;
+        emit DocumentAdded(
+            sender,
+            _recipient,
+            _packageType,
+            _documentHash,
+            _signature
+        );
     }
 
-    function signDocument(uint256 _documentId) public {
+    function signDocument(uint256 _index, bytes calldata _signature) public {
+        require(_index < numberOfDocuments, "Invalid document index");
+
         address signer = msg.sender;
-        bool found = false;
+        EmploymentDocument storage doc = documents[_index];
 
-        for (uint256 i = 0; i < employmentDocuments[signer].length; i++) {
-            if (employmentDocuments[signer][i].id == _documentId) {
-                EmploymentDocument storage doc = employmentDocuments[signer][i];
-                if (signer == employer) {
-                    require(
-                        !doc.signedByEmployer,
-                        "Document already signed by employer"
-                    );
-                    doc.signedByEmployer = true;
-                } else {
-                    require(
-                        !doc.signedByEmployee,
-                        "Document already signed by employee"
-                    );
-                    doc.signedByEmployee = true;
-                }
-                found = true;
-                emit DocumentSigned(
-                    doc.employee,
-                    _documentId,
-                    signer,
-                    doc.signedByEmployee,
-                    doc.signedByEmployer
-                );
-                break;
-            }
-        }
-        require(found, "Document not found");
-    }
+        require(signer == doc.recipient, "Signer restricted");
+        require(block.timestamp <= doc.expiry, "Package expired");
 
-    function getEmploymentDocuments(
-        address _employee
-    ) public view returns (EmploymentDocument[] memory) {
-        return employmentDocuments[_employee];
-    }
-
-    function getAllEmploymentDocuments()
-        public
-        view
-        returns (EmploymentDocument[] memory)
-    {
-        EmploymentDocument[]
-            memory allEmploymentDocuments = new EmploymentDocument[](
-                numberOfDocs
+        if (signer == _employer) {
+            require(
+                doc.packageType == PackageType.Resignation ||
+                    doc.packageType == PackageType.Retirement,
+                "Employer restricted"
             );
-
-        uint256 index = 0;
-        for (uint256 i = 0; i < employees.length; i++) {
-            address employee = employees[i];
-            EmploymentDocument[] memory docs = employmentDocuments[employee];
-            for (uint256 j = 0; j < docs.length; j++) {
-                allEmploymentDocuments[index] = docs[j];
-                index++;
-            }
+            require(doc.employerSignature.length == 0, "Already signed");
+            doc.employerSignature = _signature;
+        } else {
+            require(
+                doc.packageType != PackageType.Resignation,
+                "Employee restricted"
+            );
+            require(
+                doc.packageType != PackageType.Retirement,
+                "Employee restricted"
+            );
+            require(doc.employeeSignature.length == 0, "Already signed");
+            doc.employeeSignature = _signature;
         }
-        return allEmploymentDocuments;
+        doc.lastModified = block.timestamp;
+        emit DocumentSigned(_index, _signature);
+    }
+
+    function getDocuments() public view returns (EmploymentDocument[] memory) {
+        EmploymentDocument[] memory allDocuments = new EmploymentDocument[](
+            numberOfDocuments
+        );
+        for (uint i = 0; i < numberOfDocuments; i++) {
+            EmploymentDocument storage doc = documents[i];
+            allDocuments[i] = doc;
+        }
+        return allDocuments;
     }
 }

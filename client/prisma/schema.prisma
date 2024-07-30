@@ -8,10 +8,12 @@ datasource db {
 }
 
 model user {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  auth       String   @unique
-  email      String   @unique
-  first_name String
-  last_name  String
-  registered DateTime @default(now())
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  auth          String   @unique
+  email         String   @unique
+  first_name    String
+  last_name     String
+  profile_image String?
+  registered    DateTime @default(now())
+  is_activated  Boolean  @default(false)
 }

@@ -1,16 +1,14 @@
-import {
-  useAddress,
-  useConnect,
-  useContract,
-  useContractWrite,
-} from "@thirdweb-dev/react";
+import { useActiveAccount } from "thirdweb/react";
 import { contractABI } from "@/contract/contractABI";
-import { documentAddedABI } from "@/contract/documentAddedABI";
-import { createContext, useContext, useEffect, useState } from "react";
-import Moralis from "moralis";
-import { EvmChain } from "moralis/common-evm-utils";
-import { BigNumber } from "ethers";
-import axios from "axios";
+import {
+  createContext,
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useState,
+} from "react";
+import { ethers, utils } from "ethers";
+import { Account } from "thirdweb/wallets";
 
 export enum DocumentType {
   Offer = 0,
@@ -35,33 +33,57 @@ export enum DocumentType {
 }
 
 export interface EmploymentDocument {
-  id: BigNumber;
-  docType: number;
-  encodedDocumentContent: string;
-  timestamp: number;
-  employee: string;
-  signedByEmployee: boolean;
-  signedByEmployer: boolean;
+  sender: string;
+  recipient: string;
+  packageType: number;
+  documentHash: string;
+  employerSignature: string;
+  employeeSignature: string;
+  createdOn: number;
+  lastModified: number;
+  expiry: number;
+  pId: number;
+}
+
+export interface TableData {
+  senderName: string;
+  senderEmail: string;
+  recipientName: string;
+  recipientEmail: string;
+  sender: string;
+  recipient: string;
+  packageType: string;
+  documentHash: string;
+  employerSignature: string;
+  employeeSignature: string;
+  createdOn: number;
+  lastModified: number;
+  expiry: number;
+  pId: number;
 }
 
 interface ContractContextProps {
-  address: string | undefined;
-  connect: any;
-  contract: any;
-  getEmployer: () => Promise<string | undefined>;
+  activeAccount: Account | undefined;
+  packageDetail: TableData | undefined;
+  setPackageDetail: Dispatch<SetStateAction<TableData | undefined>>;
+  getEmployer: () => string;
+  getDocumentAddedEvent: (
+    docHash: string
+  ) => Promise<{ employee: string; transactionHash: string } | null>;
+  getDocuments: () => Promise<EmploymentDocument[]>;
   addDocument: (
     employee: string,
+    docType: number,
     encodedDocumentContent: string,
-    documentType: DocumentType
+    signature: string,
+    expiry: number,
+    updateStatus: (status: boolean, txHash: string | null) => void
   ) => Promise<void>;
-  signDocument: (documentIndex: number) => Promise<void>;
-  getEmploymentDocuments: (
-    employee: string
-  ) => Promise<EmploymentDocument[] | undefined>;
-  getAllEmploymentDocuments: () => Promise<EmploymentDocument[] | undefined>;
-  getEventsTxHash: () => Promise<string[]>;
-  getDecodedTx: (hash: string) => void;
-  getLogsTxHash: () => void;
+  signDocument: (
+    index: number,
+    signature: string,
+    updateStatus: (status: boolean, txHash: string | null) => void
+  ) => Promise<void>;
 }
 
 export const ContractContext = createContext<ContractContextProps | undefined>(
@@ -71,159 +93,182 @@ export const ContractContext = createContext<ContractContextProps | undefined>(
 export const ContractContextProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const contractAddress = "0xbE78fBf96DC5Dd4ca6105E86bE2AcF723E24C306";
-  const { contract } = useContract(contractAddress, contractABI);
-  const address = useAddress();
-  const connect = useConnect();
-  const chain = EvmChain.SEPOLIA;
-  const topic =
-    "0x1cbb29c3ad54216cfb2c9197ba0a15a31b8f8ec7124096c8390e60ddaaf52da6";
-  const abi = documentAddedABI;
-  const moralisAPI =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjE4ZTg5NjY3LTczMDMtNDY2ZS04MGQ1LTJjN2U0ZWRmYzgwZCIsIm9yZ0lkIjoiNDAwMDYzIiwidXNlcklkIjoiNDExMDc2IiwidHlwZUlkIjoiYTJiYWI0NDEtMDQyZC00Mjg0LTk4YzktNDRlMmY1Mjg1N2E0IiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3MjA5MjQ2MDQsImV4cCI6NDg3NjY4NDYwNH0._CMshA8FwdCv4AHavbgLa_ATz5Cf1t-y0mHn3NjJgn8";
-
-  const { mutateAsync: addDocumentAsync } = useContractWrite(
-    contract,
-    "addDocument"
+  const [packageDetail, setPackageDetail] = useState<TableData | undefined>(
+    undefined
   );
 
-  const { mutateAsync: signDocumentAsync } = useContractWrite(
-    contract,
-    "signDocument"
-  );
+  const activeAccount = useActiveAccount();
 
-  const getEmployer = async (): Promise<string | undefined> => {
-    try {
-      if (contract) {
-        const employer = await contract.call("getEmployer");
-        return employer;
+  const getEmployer = (): string => {
+    const employer = "0x91f4407DD03C242b7D06F25AE20934629Ad805c4";
+    return employer;
+  };
+
+  const getDocumentAddedEvent = async (
+    docHash: string
+  ): Promise<{ employee: string; transactionHash: string } | null> => {
+    if (window?.ethereum && process.env.NEXT_PUBLIC_CONTRACT_ADDRESS) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const contract = new ethers.Contract(
+        process.env.NEXT_PUBLIC_CONTRACT_ADDRESS,
+        contractABI,
+        provider
+      );
+      const filter = contract.filters.DocumentAdded();
+      const events = await contract.queryFilter(filter);
+
+      const filteredEvent = events.find(
+        (event) => event.args && event.args[2] === docHash
+      );
+
+      if (filteredEvent && filteredEvent.args) {
+        return {
+          employee: filteredEvent.args[0],
+          transactionHash: filteredEvent.transactionHash,
+        };
       }
-    } catch (error) {
-      console.error("Error fetching employer address from contract: ", error);
-      return undefined;
     }
+    return null;
+  };
+
+  const getDocuments = async (): Promise<EmploymentDocument[]> => {
+    if (window?.ethereum && process.env.NEXT_PUBLIC_CONTRACT_ADDRESS) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const contract = new ethers.Contract(
+        process.env.NEXT_PUBLIC_CONTRACT_ADDRESS,
+        contractABI,
+        provider
+      );
+      const rawDocuments = await contract.getDocuments();
+      const documents: EmploymentDocument[] = rawDocuments.map(
+        (item: any[], index: number) => ({
+          sender: item[0],
+          recipient: item[1],
+          packageType: item[2],
+          documentHash: item[3],
+          employerSignature: item[4],
+          employeeSignature: item[5],
+          createdOn: item[6].toNumber(),
+          lastModified: item[7].toNumber(),
+          expiry: item[8].toNumber(),
+          pId: index,
+        })
+      );
+      return documents;
+    }
+    return [];
   };
 
   const addDocument = async (
-    employee: string,
-    encodedDocumentContent: string,
-    documentType: DocumentType
+    recipient: string,
+    docType: number,
+    docHash: string,
+    signature: string,
+    expiry: number,
+    updateStatus: (status: boolean, txHash: string | null) => void
   ): Promise<void> => {
     try {
-      const data = await addDocumentAsync({
-        args: [employee, documentType, encodedDocumentContent],
-      });
-      console.log("Contract call success: ", data.receipt.blockHash);
-    } catch (error) {
-      console.error("Contract call failure: ", error);
-    }
-  };
+      if (window?.ethereum && process.env.NEXT_PUBLIC_CONTRACT_ADDRESS) {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const contract = new ethers.Contract(
+          process.env.NEXT_PUBLIC_CONTRACT_ADDRESS,
+          contractABI,
+          provider
+        );
+        const signer = provider.getSigner();
+        const contractWithSigner = contract.connect(signer);
 
-  const signDocument = async (documentId: number): Promise<void> => {
-    try {
-      const data = await signDocumentAsync({
-        args: [documentId],
-      });
-      console.log("Contract call success: ", data.receipt.blockHash);
-    } catch (error) {
-      console.error("Contract call failure: ", error);
-    }
-  };
+        updateStatus(false, null);
 
-  const getEmploymentDocuments = async (
-    employee: string
-  ): Promise<EmploymentDocument[] | undefined> => {
-    try {
-      if (contract) {
-        const docs = await contract.call("getEmploymentDocuments", [employee]);
-        return docs;
+        const tx = await contractWithSigner.addDocument(
+          recipient,
+          docType,
+          docHash,
+          signature,
+          expiry
+        );
+        console.log("Transaction sent: ", tx.hash);
+        updateStatus(false, tx.hash);
+        const receipt = await tx.wait();
+        console.log("Transaction successful: ", receipt.transactionHash);
+        updateStatus(true, receipt.transactionHash);
+        // console.log("Transaction confirmed: ", receipt);
+        // return receipt;
       }
     } catch (error) {
-      console.error("Error fetching documents from contract: ", error);
-      return undefined;
+      console.error("Transaction failed: ", error);
+      updateStatus(false, "0x");
     }
   };
 
-  const getAllEmploymentDocuments = async (): Promise<
-    EmploymentDocument[] | undefined
-  > => {
+  const signDocument = async (
+    index: number,
+    signature: string,
+    updateStatus: (status: boolean, txHash: string | null) => void
+  ): Promise<void> => {
     try {
-      if (contract) {
-        const docs = await contract.call("getAllEmploymentDocuments");
-        return docs;
+      if (window?.ethereum && process.env.NEXT_PUBLIC_CONTRACT_ADDRESS) {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const contract = new ethers.Contract(
+          process.env.NEXT_PUBLIC_CONTRACT_ADDRESS,
+          contractABI,
+          provider
+        );
+        const signer = provider.getSigner();
+        const contractWithSigner = contract.connect(signer);
+
+        const debugContract = new ethers.Contract(
+          process.env.NEXT_PUBLIC_CONTRACT_ADDRESS,
+          contractABI,
+          signer
+        );
+
+        try {
+          const gasEstimate = await debugContract.estimateGas.signDocument(
+            index,
+            signature
+          );
+          console.log("Estimated gas: ", gasEstimate.toString());
+
+          updateStatus(false, null);
+
+          const tx = await debugContract.signDocument(index, signature, {
+            gasLimit: gasEstimate,
+          });
+          console.log("Transaction sent: ", tx.hash);
+          updateStatus(false, tx.hash);
+          const receipt = await tx.wait();
+          console.log("Transaction successful: ", receipt.transactionHash);
+          updateStatus(true, receipt.transactionHash);
+        } catch (error) {
+          console.error("Transaction failed: ", error);
+          updateStatus(false, "0x");
+        }
+
+        // const tx = await contractWithSigner.signDocument(index, signature);
+        // console.log("Transaction sent: ", tx.hash);
+        // const receipt = await tx.wait();
+        // console.log("Transaction confirmed: ", receipt);
+        // const receipt = "test";
+        // return receipt;
       }
     } catch (error) {
-      console.error("Error fetching all documents from contract: ", error);
-      return undefined;
+      console.error(error);
+      updateStatus(false, "0x");
     }
-  };
-
-  const getEventsTxHash = async (): Promise<string[]> => {
-    try {
-      if (!Moralis.Core.isStarted) {
-        await Moralis.start({
-          apiKey: moralisAPI,
-        });
-      }
-
-      const response = await Moralis.EvmApi.events.getContractEvents({
-        address: contractAddress,
-        chain: chain,
-        topic: topic,
-        abi: abi,
-      });
-
-      const txHashes: string[] = response
-        .toJSON()
-        .result.map((tx: any) => tx.transaction_hash);
-      return txHashes;
-    } catch (error) {
-      console.error("Moralis error: ", error);
-      return [];
-    }
-  };
-
-  const getDecodedTx = async (hash: string) => {
-    try {
-      if (!Moralis.Core.isStarted) {
-        await Moralis.start({
-          apiKey: moralisAPI,
-        });
-      }
-
-      const response = await Moralis.EvmApi.transaction.getTransactionVerbose({
-        chain: chain,
-        transactionHash: hash,
-      });
-
-      console.log(response);
-    } catch (error) {
-      console.error("Moralis error: ", error);
-    }
-  };
-
-  const getLogsTxHash = async () => {
-    const etherscan = await axios.get(
-      `https://api-sepolia.etherscan.io/api?module=logs&action=getLogs&address=${contractAddress}&apikey=GHGBY95CPGZVYSQZ7SHDVMPRXJA154NFMD`
-    );
-    let { result } = etherscan.data;
-    console.log("Etherscan result: ", result);
   };
 
   return (
     <ContractContext.Provider
       value={{
-        connect,
-        address,
-        contract,
+        activeAccount,
+        packageDetail,
+        setPackageDetail,
         getEmployer,
+        getDocumentAddedEvent,
+        getDocuments,
         addDocument,
         signDocument,
-        getEmploymentDocuments,
-        getAllEmploymentDocuments,
-        getEventsTxHash,
-        getDecodedTx,
-        getLogsTxHash,
       }}
     >
       {children}

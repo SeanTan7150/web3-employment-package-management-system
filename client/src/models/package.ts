@@ -8,10 +8,7 @@ export type OfferLetter = {
   salary: number;
   benefits: string;
   supervisorName: string;
-  supervisorPosition: string;
-  companyName: string;
-  offerExpiryDate: Date;
-  employerContact: string;
+  expiry: Date;
 };
 
 export type PromotionLetter = {
@@ -23,8 +20,7 @@ export type PromotionLetter = {
   newSalary: number;
   newResponsibilities: string;
   supervisorName: string;
-  supervisorPosition: string;
-  companyName: string;
+  expiry: Date;
 };
 
 // signed by HR
@@ -35,7 +31,7 @@ export type ResignationLetter = {
   resignationDate: Date;
   lastWorkingDate: Date;
   reason: string;
-  employerContact: string;
+  expiry: Date;
 };
 
 export type TerminationLetter = {
@@ -46,456 +42,197 @@ export type TerminationLetter = {
   reason: string;
   severanceDetails: string;
   companyPropertyReturn: string;
-  employerContact: string;
+  expiry: Date;
 };
 
 export type ContractRenewalLetter = {
-  employee_full_name: string;
-  current_position: string;
+  fullName: string;
+  position: string;
   department: string;
-  renewal_start_date: Date;
-  renewal_end_date: Date;
-  new_salary: number;
-  new_benefits: string;
-  supervisor_name: string;
-  supervisor_position: string;
-  company_name: string;
+  renewalStartDate: Date;
+  renewalEndDate: Date;
+  newSalary: number;
+  newBenefits: string;
+  supervisorName: string;
+  expiry: Date;
 };
 
 export type SalaryIncreaseLetter = {
-  employee_full_name: string;
-  current_position: string;
+  fullName: string;
+  position: string;
   department: string;
-  current_salary: number;
-  new_salary: number;
-  effective_date: Date;
+  currentSalary: number;
+  newSalary: number;
+  effectiveDate: Date;
   reason: string;
-  supervisor_name: string;
-  supervisor_position: string;
-  company_name: string;
+  supervisorName: string;
+  expiry: Date;
 };
 
 export type BonusLetter = {
-  employee_full_name: string;
-  current_position: string;
+  fullName: string;
+  position: string;
   department: string;
-  bonus_amount: number;
+  bonusAmount: number;
   reason: string;
-  supervisor_name: string;
-  supervisor_position: string;
-  company_name: string;
+  supervisorName: string;
+  expiry: Date;
 };
 
 export type TransferLetter = {
-  employee_full_name: string;
-  current_position: string;
-  current_department: string;
-  new_position: string;
-  new_department: string;
-  effective_date: Date;
+  fullName: string;
+  position: string;
+  department: string;
+  newPosition: string;
+  newDepartment: string;
+  effectiveDate: Date;
   reason: string;
-  supervisor_name: string;
-  supervisor_position: string;
-  company_name: string;
+  supervisorName: string;
+  expiry: Date;
 };
 
 export type WarningLetter = {
-  employee_full_name: string;
-  current_position: string;
+  fullName: string;
+  position: string;
   department: string;
-  issue_date: Date;
-  issue_description: string;
-  previous_warnings: string;
-  expected_improvements: string;
-  non_improvement_consequences: string;
-  supervisor_name: string;
-  supervisor_position: string;
-  company_name: string;
+  issueDate: Date;
+  issueDescription: string;
+  previousWarnings: string;
+  expectedImprovements: string;
+  nonImprovementConsequences: string;
+  supervisorName: string;
+  expiry: Date;
 };
 
 export type EmploymentVerificationLetter = {
-  employee_full_name: string;
-  current_position: string;
+  fullName: string;
+  position: string;
   department: string;
-  start_date: Date;
-  employment_status: string;
+  startDate: Date;
+  employmentStatus: string;
   salary: number;
-  employment_end_date?: Date; // optional
-  supervisor_name: string;
-  supervisor_position: string;
-  company_name: string;
-  employer_contact: string;
+  employmentEndDate: Date;
+  supervisorName: string;
+  expiry: Date;
 };
 
 export type JobDescriptionLetter = {
-  employee_full_name: string;
-  current_position: string;
+  fullName: string;
+  position: string;
   department: string;
-  start_date: Date;
+  startDate: Date;
   responsibilities: string;
-  work_schedule: string;
-  reporting_structure: string;
-  performance_expectations: string;
-  supervisor_name: string;
-  supervisor_position: string;
-  company_name: string;
+  workSchedule: string;
+  performanceExpectations: string;
+  supervisorName: string;
+  expiry: Date;
 };
 
 export type TrainingCompletionLetter = {
-  employee_full_name: string;
-  current_position: string;
+  fullName: string;
+  position: string;
   department: string;
-  training_program: string;
-  completion_date: Date;
-  supervisor_name: string;
-  supervisor_position: string;
-  company_name: string;
+  trainingProgram: string;
+  completionDate: Date;
+  supervisorName: string;
+  expiry: Date;
 };
 
 export type ProbationPeriodCompletionLetter = {
-  employee_full_name: string;
-  current_position: string;
+  fullName: string;
+  position: string;
   department: string;
-  probation_end_date: Date;
-  performance_summary: string;
-  employment_confirmation: string;
-  supervisor_name: string;
-  supervisor_position: string;
-  company_name: string;
+  probationEndDate: Date;
+  performanceSummary: string;
+  employmentConfirmation: string;
+  supervisorName: string;
+  expiry: Date;
 };
 
 export type LeaveApprovalLetter = {
-  employee_full_name: string;
-  current_position: string;
+  fullName: string;
+  position: string;
   department: string;
-  leave_start_date: Date;
-  leave_end_date: Date;
-  leave_type: string;
-  supervisor_name: string;
-  supervisor_position: string;
-  company_name: string;
+  leaveStartDate: Date;
+  leaveEndDate: Date;
+  leaveType: string;
+  supervisorName: string;
+  expiry: Date;
 };
 
 export type ReferenceLetter = {
-  employee_full_name: string;
-  current_position: string;
+  fullName: string;
+  position: string;
   department: string;
-  employment_start_date: Date;
-  employment_end_date: Date;
+  employmentStartDate: Date;
+  employmentEndDate: Date;
   skills: string;
-  supervisor_name: string;
-  supervisor_position: string;
-  employer_contact: string;
-  company_name: string;
+  supervisorName: string;
+  expiry: Date;
 };
 
 export type RelocationLetter = {
-  employee_full_name: string;
-  current_position: string;
+  fullName: string;
+  position: string;
   department: string;
-  new_location: string;
-  new_position: string;
-  effective_date: Date;
-  relocation_assistance_details: string;
-  supervisor_name: string;
-  supervisor_position: string;
-  company_name: string;
+  newLocation: string;
+  newPosition: string;
+  effectiveDate: Date;
+  relocationAssistanceDetails: string;
+  supervisorName: string;
+  expiry: Date;
 };
 
 // signed by HR
 export type RetirementLetter = {
-  employee_full_name: string;
-  current_position: string;
+  fullName: string;
+  position: string;
   department: string;
-  retirement_date: Date;
-  retirement_benefits: string;
-  supervisor_name: string;
-  supervisor_position: string;
-  company_name: string;
+  retirementDate: Date;
+  retirementBenefits: string;
+  supervisorName: string;
+  expiry: Date;
 };
 
 export type EndOfContractLetter = {
-  employee_full_name: string;
-  current_position: string;
+  fullName: string;
+  position: string;
   department: string;
-  contract_end_date: Date;
+  contractEndDate: Date;
   reason: string;
-  supervisor_name: string;
-  supervisor_position: string;
-  company_name: string;
+  supervisorName: string;
+  expiry: Date;
 };
 
 export type ChangeInEmploymentTermsLetter = {
-  employee_full_name: string;
-  current_position: string;
+  fullName: string;
+  position: string;
   department: string;
-  effective_date: Date;
-  new_terms: string;
+  effectiveDate: Date;
+  newTerms: string;
   reason: string;
-  supervisor_name: string;
-  supervisor_position: string;
-  company_name: string;
+  supervisorName: string;
+  expiry: Date;
 };
 
-export const OfferLetterType = [
-  "string",
-  "string",
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "uint256",
-  "string",
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "string",
-];
-
-export const PromotionLetterType = [
-  "string",
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "uint256",
-  "string",
-  "string",
-  "string",
-  "string",
-];
-
-export const ResignationLetterType = [
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "uint256",
-  "string",
-  "string",
-];
-
-export const TerminationLetterType = [
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "string",
-  "string",
-  "string",
-  "string",
-];
-
-export const ContractRenewalLetterType = [
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "uint256",
-  "uint256",
-  "string",
-  "string",
-  "string",
-  "string",
-];
-
-export const SalaryIncreaseLetterType = [
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "uint256",
-  "uint256",
-  "string",
-  "string",
-  "string",
-  "string",
-];
-
-export const BonusLetterType = [
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "string",
-  "string",
-  "string",
-  "string",
-];
-
-export const TransferLetterType = [
-  "string",
-  "string",
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "string",
-  "string",
-  "string",
-  "string",
-];
-
-export const WarningLetterType = [
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "string",
-  "string",
-  "string",
-  "string",
-  "string",
-  "string",
-  "string",
-];
-
-export const EmploymentVerificationLetterType = [
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "string",
-  "uint256",
-  "uint256?",
-  "string",
-  "string",
-  "string",
-  "string",
-];
-
-export const JobDescriptionLetterType = [
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "string",
-  "string",
-  "string",
-  "string",
-  "string",
-  "string",
-  "string",
-];
-
-export const TrainingCompletionLetterType = [
-  "string",
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "string",
-  "string",
-  "string",
-];
-
-export const ProbationPeriodCompletionLetterType = [
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "string",
-  "string",
-  "string",
-  "string",
-  "string",
-];
-
-export const LeaveApprovalLetterType = [
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "uint256",
-  "string",
-  "string",
-  "string",
-  "string",
-];
-
-export const ReferenceLetterType = [
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "uint256",
-  "string",
-  "string",
-  "string",
-  "string",
-  "string",
-];
-
-export const RelocationLetterType = [
-  "string",
-  "string",
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "string",
-  "string",
-  "string",
-  "string",
-];
-
-export const RetirementLetterType = [
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "string",
-  "string",
-  "string",
-  "string",
-];
-
-export const EndOfContractLetterType = [
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "string",
-  "string",
-  "string",
-  "string",
-];
-
-export const ChangeInEmploymentTermsLetterType = [
-  "string",
-  "string",
-  "string",
-  "uint256",
-  "string",
-  "string",
-  "string",
-  "string",
-  "string",
-];
-
-type DocumentTypeMapping = {
-  [key: number]: string[];
-};
-
-export const documentTypeMapping: DocumentTypeMapping = {
-  0: OfferLetterType,
-  1: PromotionLetterType,
-  2: ResignationLetterType,
-  3: TerminationLetterType,
-  4: ContractRenewalLetterType,
-  5: SalaryIncreaseLetterType,
-  6: BonusLetterType,
-  7: TransferLetterType,
-  8: WarningLetterType,
-  9: EmploymentVerificationLetterType,
-  10: JobDescriptionLetterType,
-  11: TrainingCompletionLetterType,
-  12: ProbationPeriodCompletionLetterType,
-  13: LeaveApprovalLetterType,
-  14: ReferenceLetterType,
-  15: RelocationLetterType,
-  16: RetirementLetterType,
-  17: EndOfContractLetterType,
-  18: ChangeInEmploymentTermsLetterType,
+export const packageMap: { [key in number]: string } = {
+  0: "Offer Letter",
+  1: "Promotion Letter",
+  2: "Resignation Letter",
+  3: "Termination Letter",
+  4: "Contract Renewal Letter",
+  5: "Salary Increase Letter",
+  6: "Bonus Letter",
+  7: "Transfer Letter",
+  8: "Warning Letter",
+  9: "Employment Verification Letter",
+  10: "Job Description Letter",
+  11: "Training Completion Letter",
+  12: "Probation Period Completion Letter",
+  13: "Leave Approval Letter",
+  14: "Reference Letter",
+  15: "Relocation Letter",
+  16: "Retirement Letter",
+  17: "End of Contract Letter",
+  18: "Change in Employment Terms Letter",
 };
