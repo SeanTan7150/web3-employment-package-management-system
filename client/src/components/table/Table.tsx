@@ -2,18 +2,26 @@ import { TableData, useContractContext } from "@/context/contract";
 import { useRouter } from "next/navigation";
 import { MdOutlineSearch } from "react-icons/md";
 import { truncate, formatDate } from "@/utils/utils";
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
+import Image from "next/image";
+import { ethers } from "ethers";
 
 interface TableProps {
   data: TableData[];
-  view: string;
 }
 
-export const Table = ({ data, view }: TableProps) => {
-  const { getDocuments, setPackageDetail } = useContractContext();
+export const Table = ({ data }: TableProps) => {
+  const { setPackageDetail } = useContractContext();
   const [tableData, setTableData] = useState<TableData[]>(data);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [originalData, setOriginalData] = useState<TableData[]>(data);
+  const [title, setTitle] = useState("All");
+
   const router = useRouter();
+
+  useEffect(() => {
+    setOriginalData(data);
+    setTableData(data);
+  }, [data]);
 
   const handleView = (data: TableData) => {
     setPackageDetail(data);
@@ -22,7 +30,6 @@ export const Table = ({ data, view }: TableProps) => {
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value.toLowerCase();
-    setSearchTerm(value);
     const filtered = data.filter(
       (item) =>
         item.senderName.toLowerCase().includes(value) ||
@@ -35,33 +42,110 @@ export const Table = ({ data, view }: TableProps) => {
     setTableData(filtered);
   };
 
+  const handleStatusSearch = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedStatus = event.target.value;
+
+    if (selectedStatus == "All") {
+      setTitle("All");
+      setTableData(originalData);
+    } else if (selectedStatus == "Completed") {
+      setTitle("Completed");
+      const filtered = data.filter(
+        (item) =>
+          item.employeeSignature != "0x" &&
+          item.employerSignature != "0x" &&
+          item.expiry > Math.floor(Date.now() / 1000)
+      );
+      setTableData(filtered);
+    } else if (selectedStatus == "In progress") {
+      setTitle("In Progress");
+      const filtered = data.filter(
+        (item) =>
+          (item.employeeSignature != "0x" && item.employerSignature == "0x") ||
+          (item.employeeSignature == "0x" &&
+            item.employerSignature != "0x" &&
+            item.expiry > Math.floor(Date.now() / 1000))
+      );
+      setTableData(filtered);
+    } else if (selectedStatus == "Expired") {
+      setTitle("Expired");
+      const filtered = data.filter(
+        (item) => item.expiry < Math.floor(Date.now() / 1000)
+      );
+      setTableData(filtered);
+    }
+  };
+
+  const handleDownload = async (data: TableData) => {
+    try {
+      const fileURL = `https://${process.env.NEXT_PUBLIC_THIRDWEB_CLIENT}.ipfscdn.io/ipfs/${data.documentHash}`;
+      if (data) {
+        const response = await fetch(fileURL);
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok.");
+        }
+
+        const blob = await response.blob();
+
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${data.packageType}-${data.documentHash}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error("Download error: ", error);
+    }
+  };
+
   return (
     <>
       <div className="pb-4 bg-white">
         <label htmlFor="tableSearch" className="sr-only">
           Search
         </label>
-        <div className="relative mt-1">
-          <div className="absolute inset-y-0 rtl:inset-r-0 start-0 flex items-center ps-3 pointer-events-none">
-            <MdOutlineSearch className="text-gray-500" size={25} />
+        <div className="flex items-center space-x-2 mt-1">
+          <div className="relative flex-grow">
+            <div className="absolute inset-y-0 rtl:inset-r-0 start-0 flex items-center ps-3 pointer-events-none">
+              <MdOutlineSearch className="text-gray-500" size={25} />
+            </div>
+            <input
+              type="text"
+              id="tableSearch"
+              placeholder="Search for packages"
+              autoComplete="off"
+              onChange={handleSearchChange}
+              className="pr-4 py-2.5 block pl-14 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50"
+            />
           </div>
-          <input
-            type="text"
-            id="tableSearch"
-            placeholder="Search for packages"
-            autoComplete="off"
-            onChange={handleSearchChange}
-            className="pr-4 py-2.5 block pl-14 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-          />
+
+          <div className="relative">
+            <select
+              id="statusSearch"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg w-full p-2.5 cursor-pointer"
+              onChange={handleStatusSearch}
+              defaultValue="All"
+            >
+              <option>All</option>
+              <option>Completed</option>
+              <option>In progress</option>
+              <option>Expired</option>
+            </select>
+          </div>
         </div>
       </div>
 
       <div className="p-4 relative overflow-x-auto shadow-md sm:rounded-lg border">
         <table className="w-full text-sm text-left rtl:text-right text-gray-500 mb-8">
           <caption className="p-5 text-lg font-semibold text-left rtl:text-right text-gray-900 bg-white">
-            All Packages
+            {title} Packages
             {tableData && (
-              <p className="mt-1 text-sm font-normal text-gray-500">{`Latest 2 from a total of ${
+              <p className="mt-1 text-sm font-normal text-gray-500">{`Total of ${
                 tableData.length
               } transaction${tableData.length > 1 ? "s" : ""}`}</p>
             )}
@@ -84,20 +168,17 @@ export const Table = ({ data, view }: TableProps) => {
             {tableData.length > 0 ? (
               <>
                 {tableData.map((data) => (
-                  <tr
-                    key={data.documentHash}
-                    className="cursor-pointer hover:bg-gray-100"
-                    onClick={() => {
-                      handleView(data);
-                    }}
-                  >
+                  <tr key={data.documentHash} className="hover:bg-gray-100">
                     <th
                       key="name"
                       scope="row"
-                      className="px-6 py-4 text-gray-900 whitespace-nowrap"
+                      className="px-6 py-4 text-gray-900 whitespace-nowrap cursor-pointer group"
+                      onClick={() => {
+                        handleView(data);
+                      }}
                     >
                       <div>
-                        <div className="font-semibold hover:text-blue-600">{`${
+                        <div className="font-semibold group-hover:text-blue-600 no-underline group-hover:underline">{`${
                           data.packageType
                         }: ${truncate(data.documentHash)}.pdf`}</div>
                         <div className="font-normal text-gray-500">{`To: ${data.recipientName}`}</div>
@@ -124,10 +205,26 @@ export const Table = ({ data, view }: TableProps) => {
                     </td>
                     <td>
                       {data.expiry < Math.floor(Date.now() / 1000) ? (
-                        <button>View</button>
+                        <button
+                          type="button"
+                          className="hover:text-gray-800 px-4 py-2 border border-gray-600"
+                          onClick={() => {
+                            handleView(data);
+                          }}
+                        >
+                          View
+                        </button>
                       ) : data.employerSignature != "0x" &&
                         data.employeeSignature != "0x" ? (
-                        <button>Download</button>
+                        <button
+                          type="button"
+                          className="hover:text-gray-800 px-4 py-2 border border-gray-600"
+                          onClick={() => {
+                            handleDownload(data);
+                          }}
+                        >
+                          Download
+                        </button>
                       ) : null}
                     </td>
                   </tr>
@@ -135,7 +232,19 @@ export const Table = ({ data, view }: TableProps) => {
               </>
             ) : (
               <tr>
-                <th colSpan={5}>No record found</th>
+                <th className="text-center" colSpan={4}>
+                  <div className="flex justify-center items-center my-8">
+                    <div className="w-96 h-96">
+                      <Image
+                        src="/No-Data-Found-Illustration.jpg"
+                        alt="No record found"
+                        layout="responsive"
+                        width={256}
+                        height={256}
+                      />
+                    </div>
+                  </div>
+                </th>
               </tr>
             )}
           </tbody>

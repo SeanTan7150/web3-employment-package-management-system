@@ -28,7 +28,7 @@ interface SidebarProps {}
 export const Sidebar: React.FC<SidebarProps> = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isNavigationHidden, setIsNavigationHidden] = useState(false);
-  const [activePath, setActivePath] = useState("/");
+  const [activePath, setActivePath] = useState("/ethiring");
   const [isEmployer, setIsEmployer] = useState(false);
 
   const path = usePathname();
@@ -64,31 +64,49 @@ export const Sidebar: React.FC<SidebarProps> = () => {
             <ul className="space-y-2 font-medium">
               <SidebarItem path="/ethiring" activePath={activePath}>
                 <MdDashboard
-                  className={`flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 group-hover:text-blue-600 ${
-                    activePath == "/ethiring" ? "text-blue-600" : ""
+                  className={`flex-shrink-0 w-5 h-5 transition duration-75 group-hover:text-blue-600 ${
+                    activePath === "/ethiring"
+                      ? "text-blue-600"
+                      : "text-gray-500"
                   }`}
                 />
-                <span className="ms-3">Dashboard</span>
+                <span
+                  className={`ms-3 ${
+                    activePath === "/ethiring"
+                      ? "text-blue-600"
+                      : "text-gray-900"
+                  }`}
+                >
+                  Dashboard
+                </span>
               </SidebarItem>
 
               <li>
                 <Link
                   href="/ethiring/package/view/inbox"
                   passHref
-                  className={`flex items-center p-2 text-gray-900 rounded-lg hover:bg-blue-100 group ${
+                  className={`flex items-center p-2 rounded-lg hover:bg-blue-100 hover:text-blue-600 group ${
                     activePath.startsWith("/ethiring/package")
-                      ? "bg-blue-100"
-                      : ""
+                      ? "bg-blue-100 text-blue-600"
+                      : "text-gray-900"
                   }`}
                 >
                   <MdFolderCopy
-                    className={`flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 group-hover:text-blue-600 ${
+                    className={`flex-shrink-0 w-5 h-5 transition duration-75 group-hover:text-blue-600 ${
                       activePath.startsWith("/ethiring/package")
                         ? "text-blue-600"
-                        : ""
+                        : "text-gray-500"
                     }`}
                   />
-                  <span className="ms-3">Packages</span>
+                  <span
+                    className={`ms-3 ${
+                      activePath.startsWith("/ethiring/package")
+                        ? "text-blue-600"
+                        : "text-gray-900"
+                    }`}
+                  >
+                    Packages
+                  </span>
                 </Link>
               </li>
 
@@ -98,13 +116,21 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                   activePath={activePath}
                 >
                   <MdMoveToInbox
-                    className={`flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 group-hover:text-blue-600  ${
-                      activePath == "/ethiring/package/view/inbox"
+                    className={`flex-shrink-0 w-5 h-5 transition duration-75 hover:text-blue-600 group-hover:text-blue-600 ${
+                      activePath === "/ethiring/package/view/inbox"
                         ? "text-blue-600"
-                        : ""
+                        : "text-gray-500"
                     }`}
                   />
-                  <span className="ms-3">Inbox</span>
+                  <span
+                    className={`ms-3 ${
+                      activePath === "/ethiring/package/view/inbox"
+                        ? "text-blue-600"
+                        : "text-gray-900"
+                    }`}
+                  >
+                    Inbox
+                  </span>
                 </SidebarSubItem>
 
                 <SidebarSubItem
@@ -112,13 +138,21 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                   activePath={activePath}
                 >
                   <MdSend
-                    className={`flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 group-hover:text-blue-600  ${
-                      activePath == "/ethiring/package/view/sent"
+                    className={`flex-shrink-0 w-5 h-5 transition duration-75 group-hover:text-blue-600 group-hover:text-blue-600 ${
+                      activePath === "/ethiring/package/view/sent"
                         ? "text-blue-600"
-                        : ""
+                        : "text-gray-500"
                     }`}
                   />
-                  <span className="ms-3">Sent</span>
+                  <span
+                    className={`ms-3 ${
+                      activePath === "/ethiring/package/view/sent"
+                        ? "text-blue-600"
+                        : "text-gray-900"
+                    }`}
+                  >
+                    Sent
+                  </span>
                 </SidebarSubItem>
 
                 <SidebarSubItem
@@ -126,13 +160,21 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                   activePath={activePath}
                 >
                   <MdCheckCircle
-                    className={`flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 group-hover:text-blue-600  ${
-                      activePath == "/ethiring/package/view/completed"
+                    className={`flex-shrink-0 w-5 h-5 transition duration-75 group-hover:text-blue-600 ${
+                      activePath === "/ethiring/package/view/completed"
                         ? "text-blue-600"
-                        : ""
+                        : "text-gray-500"
                     }`}
                   />
-                  <span className="ms-3">Completed</span>
+                  <span
+                    className={`ms-3 ${
+                      activePath === "/ethiring/package/view/completed"
+                        ? "text-blue-600"
+                        : "text-gray-900"
+                    }`}
+                  >
+                    Completed
+                  </span>
                 </SidebarSubItem>
 
                 <SidebarSubItem
@@ -140,23 +182,41 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                   activePath={activePath}
                 >
                   <MdCreateNewFolder
-                    className={`flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 group-hover:text-blue-600  ${
-                      activePath == "/ethiring/package/add"
+                    className={`flex-shrink-0 w-5 h-5 transition duration-75 group-hover:text-blue-600 ${
+                      activePath === "/ethiring/package/add"
                         ? "text-blue-600"
-                        : ""
+                        : "text-gray-500"
                     }`}
                   />
-                  <span className="ms-3">Craft</span>
+                  <span
+                    className={`ms-3 ${
+                      activePath === "/ethiring/package/view/add"
+                        ? "text-blue-600"
+                        : "text-gray-900"
+                    }`}
+                  >
+                    Craft
+                  </span>
                 </SidebarSubItem>
               </ul>
               {isEmployer && (
                 <SidebarItem path="/ethiring/admin" activePath={activePath}>
                   <MdGroup
-                    className={`flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 group-hover:text-blue-600 ${
-                      activePath == "/ethiring/admin" ? "text-blue-600" : ""
+                    className={`flex-shrink-0 w-5 h-5 transition duration-75 group-hover:text-blue-600 ${
+                      activePath === "/ethiring/admin"
+                        ? "text-blue-600"
+                        : "text-gray-500"
                     }`}
                   />
-                  <span className="ms-3">Admin</span>
+                  <span
+                    className={`ms-3 ${
+                      activePath === "/ethiring/admin"
+                        ? "text-blue-600"
+                        : "text-gray-900"
+                    }`}
+                  >
+                    Admin
+                  </span>
                 </SidebarItem>
               )}
             </ul>
@@ -177,8 +237,8 @@ const SidebarItem = ({
     <Link
       href={path}
       passHref
-      className={`flex items-center p-2 text-gray-900 rounded-lg hover:bg-blue-100 hover:text-blue-600 group ${
-        activePath === path ? "bg-blue-100 text-blue-600" : ""
+      className={`flex items-center p-2 rounded-lg hover:bg-blue-100 hover:text-blue-600 group ${
+        activePath === path ? "bg-blue-100" : ""
       }`}
       onClick={handleClick}
     >

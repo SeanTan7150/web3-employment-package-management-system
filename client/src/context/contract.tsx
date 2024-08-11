@@ -7,7 +7,7 @@ import {
   useContext,
   useState,
 } from "react";
-import { ethers, utils } from "ethers";
+import { BigNumber, ethers, utils } from "ethers";
 import { Account } from "thirdweb/wallets";
 
 export enum DocumentType {
@@ -70,6 +70,9 @@ interface ContractContextProps {
   getDocumentAddedEvent: (
     docHash: string
   ) => Promise<{ employee: string; transactionHash: string } | null>;
+  getDocumentSignedEvent: (
+    index: number
+  ) => Promise<{ transactionHash: string } | null>;
   getDocuments: () => Promise<EmploymentDocument[]>;
   addDocument: (
     employee: string,
@@ -118,12 +121,40 @@ export const ContractContextProvider: React.FC<{
       const events = await contract.queryFilter(filter);
 
       const filteredEvent = events.find(
-        (event) => event.args && event.args[2] === docHash
+        (event) => event.args && event.args[3] === docHash
       );
 
       if (filteredEvent && filteredEvent.args) {
         return {
           employee: filteredEvent.args[0],
+          transactionHash: filteredEvent.transactionHash,
+        };
+      }
+    }
+    return null;
+  };
+
+  const getDocumentSignedEvent = async (
+    index: number
+  ): Promise<{ transactionHash: string } | null> => {
+    if (window?.ethereum && process.env.NEXT_PUBLIC_CONTRACT_ADDRESS) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const contract = new ethers.Contract(
+        process.env.NEXT_PUBLIC_CONTRACT_ADDRESS,
+        contractABI,
+        provider
+      );
+      const filter = contract.filters.DocumentSigned();
+      const events = await contract.queryFilter(filter);
+
+      const filteredIndex = BigNumber.from(index);
+
+      const filteredEvent = events.find(
+        (event) => event.args && BigNumber.from(event.args[0]).eq(filteredIndex)
+      );
+
+      if (filteredEvent && filteredEvent.args) {
+        return {
           transactionHash: filteredEvent.transactionHash,
         };
       }
@@ -266,6 +297,7 @@ export const ContractContextProvider: React.FC<{
         setPackageDetail,
         getEmployer,
         getDocumentAddedEvent,
+        getDocumentSignedEvent,
         getDocuments,
         addDocument,
         signDocument,

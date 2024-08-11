@@ -72,7 +72,7 @@ export default function Home() {
       <div className="mt-20">
         <div className="mt-64 relative z-10 flex flex-col justify-center items-center h-full text-center">
           <h1 className="mb-4 text-5xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl">
-            Welcome to Your Future with Us
+            Welcome to Your Future With Us
           </h1>
           <p className="mb-6 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48">
             Streamline your employment management with our blockchain-enabled HR

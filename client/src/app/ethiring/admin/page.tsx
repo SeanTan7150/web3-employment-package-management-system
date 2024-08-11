@@ -6,9 +6,11 @@ import { Sidebar } from "@/components/navigation/Sidebar";
 import { useContractContext } from "@/context/contract";
 import { User, UsersResponse } from "@/models/user";
 import { activateUser, deactivateUser, readUsers } from "@/services/service";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { MdOutlineSearch } from "react-icons/md";
+import { downloadCSV, formatDate, generateCSV } from "@/utils/utils";
 
 export default function Admin() {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
@@ -33,14 +35,17 @@ export default function Admin() {
   const [isUpdating, setIsUpdating] = useState(false);
   const { getEmployer } = useContractContext();
 
-  const formatDate = (date: string | Date) => {
-    const dateObj = typeof date === "string" ? new Date(date) : date;
-    return dateObj.toLocaleDateString();
-  };
+  // const formatDate = (date: string | Date) => {
+  //   const dateObj = typeof date === "string" ? new Date(date) : date;
+  //   return dateObj.toLocaleDateString();
+  // };
 
   const fetchEmployees = async () => {
+    console.log("Fetching employees...");
+    setIsLoading(true);
     const data: UsersResponse = await readUsers();
     const filtered = data.users.filter((user) => user.auth != getEmployer());
+    console.log("Fetched employees: ", filtered);
     setEmployees(filtered);
     setIsLoading(false);
   };
@@ -60,7 +65,8 @@ export default function Admin() {
     }
     try {
       await activateUser(auth);
-      await fetchEmployees();
+      console.log(`Activated user: ${auth}`);
+      fetchEmployees();
     } catch (error) {
       console.error("Failed to activate: ", auth);
     } finally {
@@ -77,12 +83,23 @@ export default function Admin() {
     }
     try {
       await deactivateUser(auth);
-      await fetchEmployees();
+      console.log(`Deactivated user: ${auth}`);
+      fetchEmployees();
     } catch (error) {
       console.error("Failed to deactivate: ", auth);
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  const handleExportCSV = () => {
+    const confirmed = confirm("Export employees data to CSV?");
+    if (!confirmed) {
+      return;
+    }
+    const csvContent = generateCSV(employees);
+    const timestamp = new Date().toISOString().replace(/[-T:\.Z]/g, "");
+    downloadCSV(csvContent, `employees-${timestamp}.csv`);
   };
 
   if (isLoading || isAuthLoading || !isAuthVerified) {
@@ -146,13 +163,26 @@ export default function Admin() {
                           scope="row"
                           className="px-6 py-4 text-gray-900 whitespace-nowrap"
                         >
-                          {`${data.first_name} ${data.last_name}`}
+                          <div className="flex items-center">
+                            <span
+                              className={`flex w-3 h-3 me-3 rounded-full mr-2 ${
+                                data.is_activated
+                                  ? "bg-green-500"
+                                  : "bg-red-500"
+                              }`}
+                            ></span>
+                            {`${data.first_name} ${data.last_name}`}
+                          </div>
                         </th>
                         <td key="email" className="px-6 py-4">
                           {data.email}
                         </td>
                         <td key="registeredOn" className="px-6 py-4">
-                          {formatDate(data.registered)}
+                          {formatDate(
+                            Math.floor(
+                              new Date(data.registered).getTime() / 1000
+                            )
+                          )}
                         </td>
                         <td className="text-center">
                           {data.is_activated ? (
@@ -188,13 +218,31 @@ export default function Admin() {
                   </>
                 ) : (
                   <tr>
-                    <th colSpan={5} className="text-center">
-                      No record found
+                    <th className="text-center" colSpan={4}>
+                      <div className="flex justify-center items-center my-8">
+                        <div className="w-96 h-96">
+                          <Image
+                            src="/No-Data-Found-Illustration.jpg"
+                            alt="No record found"
+                            layout="responsive"
+                            width={256}
+                            height={256}
+                          />
+                        </div>
+                      </div>
                     </th>
                   </tr>
                 )}
               </tbody>
             </table>
+          </div>
+          <div className="mt-4 flex justify-end">
+            <button
+              className="border border-gray-600 rounded px-4 py-2 hover:bg-gray-200"
+              onClick={handleExportCSV}
+            >
+              Export to CSV
+            </button>
           </div>
         </div>
       </div>

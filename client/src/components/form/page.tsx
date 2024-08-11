@@ -360,7 +360,7 @@ const DynamicForm = <T extends object>({
                       <select
                         name={key}
                         id={key}
-                        className={`${
+                        className={`bg-gray-50 border text-sm rounded-md block w-full px-4 h-11 ${
                           loadStatus != 0 ? "cursor-not-allowed" : null
                         }`}
                         onChange={handleSelectEmployeeChange}

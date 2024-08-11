@@ -67,6 +67,7 @@ npm install axios
 npm i --save-dev @ethersproject/providers
 yarn add chart.js
 yarn add react-chartjs-2
+npm install nodemailer
 ```
 
 ## Initialize Prisma

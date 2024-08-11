@@ -37,9 +37,8 @@ export default function View({ params }: { params: { view: string } }) {
   const [isLoading, setIsLoading] = useState(true);
   const [tableData, setTableData] = useState<TableData[]>([]);
   const [employees, setEmployees] = useState<User[]>([]);
-  const [isEmployer, setIsEmployer] = useState(false);
 
-  const { getDocuments, getEmployer } = useContractContext();
+  const { getDocuments } = useContractContext();
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -126,7 +125,7 @@ export default function View({ params }: { params: { view: string } }) {
       <Sidebar />
       <div className="p-6">
         <div className={`mt-16 sm:ml-64`}>
-          <Table data={tableData} view={params.view} />
+          <Table data={[...tableData].reverse()} />
         </div>
       </div>
     </>

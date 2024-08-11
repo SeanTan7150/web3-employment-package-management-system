@@ -22,7 +22,7 @@ export const formConfig: { [key: string]: FieldConfig } = {
     type: "number",
     label: "Bonus Amount (RM)",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   companyPropertyReturn: {
     type: "text",
@@ -34,19 +34,19 @@ export const formConfig: { [key: string]: FieldConfig } = {
     type: "date",
     label: "Completion Date",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   contractEndDate: {
     type: "date",
     label: "Contract End Date",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   currentSalary: {
     type: "number",
     label: "Current Annual Salary (RM)",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   department: {
     type: "text",
@@ -58,7 +58,7 @@ export const formConfig: { [key: string]: FieldConfig } = {
     type: "date",
     label: "Effective Date",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   employmentConfirmation: {
     type: "text",
@@ -70,13 +70,13 @@ export const formConfig: { [key: string]: FieldConfig } = {
     type: "date",
     label: "Employment End Date",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   employmentStartDate: {
     type: "date",
     label: "Employment Start Date",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   employmentStatus: {
     type: "text",
@@ -94,7 +94,7 @@ export const formConfig: { [key: string]: FieldConfig } = {
     type: "date",
     label: "Package Expiry Date",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   fullName: {
     type: "text",
@@ -106,7 +106,7 @@ export const formConfig: { [key: string]: FieldConfig } = {
     type: "date",
     label: "Issue Date",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   issueDescription: {
     type: "text",
@@ -118,19 +118,19 @@ export const formConfig: { [key: string]: FieldConfig } = {
     type: "date",
     label: "Last Working Date",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   leaveEndDate: {
     type: "date",
     label: "Leave End Date",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   leaveStartDate: {
     type: "date",
     label: "Leave Start Date",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   leaveType: {
     type: "text",
@@ -172,7 +172,7 @@ export const formConfig: { [key: string]: FieldConfig } = {
     type: "number",
     label: "New Annual Salary (RM)",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   newTerms: {
     type: "text",
@@ -214,7 +214,7 @@ export const formConfig: { [key: string]: FieldConfig } = {
     type: "date",
     label: "Probation End Date",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   reason: {
     type: "text",
@@ -232,19 +232,19 @@ export const formConfig: { [key: string]: FieldConfig } = {
     type: "date",
     label: "Renewal End Date",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   renewalStartDate: {
     type: "date",
     label: "Renewal Start Date",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   resignationDate: {
     type: "date",
     label: "Resignation Date",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   responsibilities: {
     type: "text",
@@ -262,13 +262,13 @@ export const formConfig: { [key: string]: FieldConfig } = {
     type: "date",
     label: "Retirement Date",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   salary: {
     type: "number",
     label: "Annual Salary (RM)",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   severanceDetails: {
     type: "text",
@@ -286,7 +286,7 @@ export const formConfig: { [key: string]: FieldConfig } = {
     type: "date",
     label: "Start Date",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   supervisorName: {
     type: "text",
@@ -298,7 +298,7 @@ export const formConfig: { [key: string]: FieldConfig } = {
     type: "date",
     label: "Termination Date",
     placeholder: "",
-    className: "",
+    className: "h-11 px-4 border rounded-md",
   },
   trainingProgram: {
     type: "text",

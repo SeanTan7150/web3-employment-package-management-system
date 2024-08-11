@@ -22,6 +22,7 @@ import {
 } from "@/models/package";
 import jsPDF from "jspdf";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { User } from "@/models/user";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -103,7 +104,7 @@ export const generateOfferLetter = async (
   doc.text(`7. The offer is valid until ${offerLetter.expiry}.`, 10, row);
   const pdfBlob = doc.output("blob");
   const url = URL.createObjectURL(pdfBlob);
-  const confirmed = await showPDFInIframe(url);
+  const confirmed = await showPDFInIframe(url, "Upload to IPFS");
 
   if (confirmed) {
     return pdfBlob;
@@ -166,7 +167,7 @@ export const generatePromotionLetter = async (
 
   const pdfBlob = doc.output("blob");
   const url = URL.createObjectURL(pdfBlob);
-  const confirmed = await showPDFInIframe(url);
+  const confirmed = await showPDFInIframe(url, "Upload to IPFS");
 
   if (confirmed) {
     return pdfBlob;
@@ -215,7 +216,7 @@ export const generateResignationLetter = async (
 
   const pdfBlob = doc.output("blob");
   const url = URL.createObjectURL(pdfBlob);
-  const confirmed = await showPDFInIframe(url);
+  const confirmed = await showPDFInIframe(url, "Upload to IPFS");
 
   if (confirmed) {
     return pdfBlob;
@@ -293,7 +294,7 @@ export const generateTerminationLetter = async (
 
   const pdfBlob = doc.output("blob");
   const url = URL.createObjectURL(pdfBlob);
-  const confirmed = await showPDFInIframe(url);
+  const confirmed = await showPDFInIframe(url, "Upload to IPFS");
 
   if (confirmed) {
     return pdfBlob;
@@ -376,7 +377,7 @@ export const generateContractRenewalLetter = async (
 
   const pdfBlob = doc.output("blob");
   const url = URL.createObjectURL(pdfBlob);
-  const confirmed = await showPDFInIframe(url);
+  const confirmed = await showPDFInIframe(url, "Upload to IPFS");
 
   if (confirmed) {
     return pdfBlob;
@@ -402,15 +403,7 @@ export const generateSalaryIncreaseLetter = async (
   doc.text(`To the attention of ${salaryIncreaseLetter.fullName},`, 10, row);
   row += 10;
   doc.text(
-    `We are pleased to inform you that, effective ${
-      salaryIncreaseLetter.effectiveDate
-    }, your salary will be increased from RM${salaryIncreaseLetter.currentSalary.toFixed(
-      2
-    )} to RM${salaryIncreaseLetter.newSalary.toFixed(
-      2
-    )}. This decision reflects your outstanding performance and significant contributions to the ${
-      salaryIncreaseLetter.department
-    } department in your role as ${salaryIncreaseLetter.position}.`,
+    `We are pleased to inform you that, effective ${salaryIncreaseLetter.effectiveDate}, your salary will be increased from RM${salaryIncreaseLetter.currentSalary} to RM${salaryIncreaseLetter.newSalary}. This decision reflects your outstanding performance and significant contributions to the ${salaryIncreaseLetter.department} department in your role as ${salaryIncreaseLetter.position}.`,
     10,
     row,
     { maxWidth: 190, align: "justify" }
@@ -439,7 +432,7 @@ export const generateSalaryIncreaseLetter = async (
 
   const pdfBlob = doc.output("blob");
   const url = URL.createObjectURL(pdfBlob);
-  const confirmed = await showPDFInIframe(url);
+  const confirmed = await showPDFInIframe(url, "Upload to IPFS");
 
   if (confirmed) {
     return pdfBlob;
@@ -471,7 +464,7 @@ export const generateBonusLetter = async (
     { maxWidth: 190, align: "justify" }
   );
   row += 20;
-  doc.text(`1. Bonus Amount: RM${bonusLetter.bonusAmount.toFixed(2)}`, 10, row);
+  doc.text(`1. Bonus Amount: RM${bonusLetter.bonusAmount}`, 10, row);
   row += 10;
   doc.text(`2. Reason for Bonus:`, 10, row);
   row += 10;
@@ -497,7 +490,7 @@ export const generateBonusLetter = async (
 
   const pdfBlob = doc.output("blob");
   const url = URL.createObjectURL(pdfBlob);
-  const confirmed = await showPDFInIframe(url);
+  const confirmed = await showPDFInIframe(url, "Upload to IPFS");
 
   if (confirmed) {
     return pdfBlob;
@@ -578,7 +571,7 @@ export const generateTransferLetter = async (
 
   const pdfBlob = doc.output("blob");
   const url = URL.createObjectURL(pdfBlob);
-  const confirmed = await showPDFInIframe(url);
+  const confirmed = await showPDFInIframe(url, "Upload to IPFS");
 
   if (confirmed) {
     return pdfBlob;
@@ -679,7 +672,7 @@ export const generateWarningLetter = async (
 
   const pdfBlob = doc.output("blob");
   const url = URL.createObjectURL(pdfBlob);
-  const confirmed = await showPDFInIframe(url);
+  const confirmed = await showPDFInIframe(url, "Upload to IPFS");
 
   if (confirmed) {
     return pdfBlob;
@@ -749,7 +742,7 @@ export const generateEmploymentVerificationLetter = async (
 
   const pdfBlob = doc.output("blob");
   const url = URL.createObjectURL(pdfBlob);
-  const confirmed = await showPDFInIframe(url);
+  const confirmed = await showPDFInIframe(url, "Upload to IPFS");
 
   if (confirmed) {
     return pdfBlob;
@@ -823,7 +816,7 @@ export const generateJobDescriptionLetter = async (
 
   const pdfBlob = doc.output("blob");
   const url = URL.createObjectURL(pdfBlob);
-  const confirmed = await showPDFInIframe(url);
+  const confirmed = await showPDFInIframe(url, "Upload to IPFS");
 
   if (confirmed) {
     return pdfBlob;
@@ -900,7 +893,7 @@ export const generateTrainingCompletionLetter = async (
 
   const pdfBlob = doc.output("blob");
   const url = URL.createObjectURL(pdfBlob);
-  const confirmed = await showPDFInIframe(url);
+  const confirmed = await showPDFInIframe(url, "Upload to IPFS");
 
   if (confirmed) {
     return pdfBlob;
@@ -964,7 +957,7 @@ export const generateProbationPeriodCompletionLetter = async (
 
   const pdfBlob = doc.output("blob");
   const url = URL.createObjectURL(pdfBlob);
-  const confirmed = await showPDFInIframe(url);
+  const confirmed = await showPDFInIframe(url, "Upload to IPFS");
 
   if (confirmed) {
     return pdfBlob;
@@ -1034,7 +1027,7 @@ export const generateLeaveApprovalLetter = async (
 
   const pdfBlob = doc.output("blob");
   const url = URL.createObjectURL(pdfBlob);
-  const confirmed = await showPDFInIframe(url);
+  const confirmed = await showPDFInIframe(url, "Upload to IPFS");
 
   if (confirmed) {
     return pdfBlob;
@@ -1093,7 +1086,7 @@ export const generateReferenceLetter = async (
 
   const pdfBlob = doc.output("blob");
   const url = URL.createObjectURL(pdfBlob);
-  const confirmed = await showPDFInIframe(url);
+  const confirmed = await showPDFInIframe(url, "Upload to IPFS");
 
   if (confirmed) {
     return pdfBlob;
@@ -1155,7 +1148,7 @@ export const generateRelocationLetter = async (
 
   const pdfBlob = doc.output("blob");
   const url = URL.createObjectURL(pdfBlob);
-  const confirmed = await showPDFInIframe(url);
+  const confirmed = await showPDFInIframe(url, "Upload to IPFS");
 
   if (confirmed) {
     return pdfBlob;
@@ -1208,7 +1201,7 @@ export const generateRetirementLetter = async (
 
   const pdfBlob = doc.output("blob");
   const url = URL.createObjectURL(pdfBlob);
-  const confirmed = await showPDFInIframe(url);
+  const confirmed = await showPDFInIframe(url, "Upload to IPFS");
 
   if (confirmed) {
     return pdfBlob;
@@ -1264,7 +1257,7 @@ export const generateEndOfContractLetter = async (
 
   const pdfBlob = doc.output("blob");
   const url = URL.createObjectURL(pdfBlob);
-  const confirmed = await showPDFInIframe(url);
+  const confirmed = await showPDFInIframe(url, "Upload to IPFS");
 
   if (confirmed) {
     return pdfBlob;
@@ -1348,7 +1341,7 @@ export const generateChangeInEmploymentTermsLetter = async (
 
   const pdfBlob = doc.output("blob");
   const url = URL.createObjectURL(pdfBlob);
-  const confirmed = await showPDFInIframe(url);
+  const confirmed = await showPDFInIframe(url, "Upload to IPFS");
 
   if (confirmed) {
     return pdfBlob;
@@ -1356,7 +1349,10 @@ export const generateChangeInEmploymentTermsLetter = async (
   return null;
 };
 
-export const showPDFInIframe = (url: string): Promise<boolean> => {
+export const showPDFInIframe = (
+  url: string,
+  title: string
+): Promise<boolean> => {
   return new Promise((resolve) => {
     // Create a modal container
     const modalContainer = document.createElement("div");
@@ -1394,7 +1390,7 @@ export const showPDFInIframe = (url: string): Promise<boolean> => {
 
     // Create a confirm button
     const confirmButton = document.createElement("button");
-    confirmButton.textContent = "Upload to IPFS";
+    confirmButton.textContent = title;
     confirmButton.style.padding = "10px 20px";
     confirmButton.style.backgroundColor = "#007BFF";
     confirmButton.style.color = "white";
@@ -1627,4 +1623,30 @@ export const calculateDaysAgo = (timestamp: number) => {
   const daysAgo = Math.floor(differenceInMilliseconds / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
 
   return `${daysAgo} day${daysAgo !== 1 ? "s" : ""} ago`;
+};
+
+export const generateCSV = (data: User[]): string => {
+  if (data.length === 0) {
+    return "";
+  }
+  const headers = Object.keys(data[0]).join(",");
+  const rows = data
+    .map((row) =>
+      Object.values(row)
+        .map((value) => (value instanceof Date ? value.toISOString() : value))
+        .join(",")
+    )
+    .join("\n");
+  return `${headers}\n${rows}`;
+};
+
+export const downloadCSV = (csvContent: string, filename: string): void => {
+  const blob = new Blob([csvContent], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 };

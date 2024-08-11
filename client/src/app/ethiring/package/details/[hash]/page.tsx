@@ -8,7 +8,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { formatDate, showPDFInIframe, truncate } from "@/utils/utils";
 import {
+  MdContentCopy,
   MdError,
+  MdOutlineDoneAll,
   MdOutlineFileDownload,
   MdOutlineVerifiedUser,
 } from "react-icons/md";
@@ -35,15 +37,22 @@ export default function ViewDetails({ params }: { params: { hash: string } }) {
 
   const [isLoading, setIsLoading] = useState(true);
   const [loadingStatus, setLoadingStatus] = useState(0);
-  const [txHash, setTxHash] = useState("");
   const [verified, setVerified] = useState(true);
-  const [copied, setCopied] = useState(false);
-  const { getEmployer, signDocument, getDocumentAddedEvent, packageDetail } =
-    useContractContext();
+  const [addedCopied, setAddedCopied] = useState(false);
+  const [signedCopied, setSignedCopied] = useState(false);
+  const {
+    getEmployer,
+    signDocument,
+    getDocumentAddedEvent,
+    getDocumentSignedEvent,
+    packageDetail,
+  } = useContractContext();
   const [loggedInUser, setLoggedInUser] = useState<string | undefined>(
     undefined
   );
   const [tempTx, setTempTx] = useState<string | null>(null);
+  const [docAddedTx, setDocAddedTx] = useState<string | undefined>(undefined);
+  const [docSignedTx, setDocSignedTx] = useState<string | undefined>(undefined);
 
   const handleSign = async (docHash: string) => {
     if (!packageDetail) {
@@ -99,7 +108,8 @@ export default function ViewDetails({ params }: { params: { hash: string } }) {
 
   const toggleModal = async () => {
     await showPDFInIframe(
-      `https://${process.env.NEXT_PUBLIC_THIRDWEB_CLIENT}.ipfscdn.io/ipfs/${params.hash}`
+      `https://${process.env.NEXT_PUBLIC_THIRDWEB_CLIENT}.ipfscdn.io/ipfs/${params.hash}`,
+      "Done"
     );
   };
 
@@ -118,7 +128,7 @@ export default function ViewDetails({ params }: { params: { hash: string } }) {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${packageDetail.packageType}-${packageDetail.packageType}.pdf`;
+        a.download = `${packageDetail.packageType}-${packageDetail.documentHash}.pdf`;
         document.body.appendChild(a);
         a.click();
 
@@ -130,6 +140,23 @@ export default function ViewDetails({ params }: { params: { hash: string } }) {
     }
   };
 
+  const handleCopyHash = (isAdd: boolean, hash: string) => {
+    navigator.clipboard.writeText(hash).then(
+      () => {
+        if (isAdd) {
+          setAddedCopied(true);
+          setTimeout(() => setAddedCopied(false), 2000);
+        } else {
+          setSignedCopied(true);
+          setTimeout(() => setSignedCopied(false), 2000);
+        }
+      },
+      (err) => {
+        console.error("Failed to copy address: ", err);
+      }
+    );
+  };
+
   useEffect(() => {
     const fetchActiveAccount = async () => {
       if (window?.ethereum) {
@@ -138,6 +165,7 @@ export default function ViewDetails({ params }: { params: { hash: string } }) {
         setLoggedInUser(activeAccount);
       }
     };
+
     if (isAuthVerified) {
       fetchActiveAccount();
     }
@@ -146,11 +174,18 @@ export default function ViewDetails({ params }: { params: { hash: string } }) {
   useEffect(() => {
     if (isAuthVerified) {
       // only employer or target employee can view
+      if (!packageDetail) {
+        alert("Package details missing");
+        router.push("/ethiring/package/view/inbox");
+        return;
+      }
+
       const checkAuthorization = async () => {
         const message = `Please sign to confirm the upload of the document with CID: ${params.hash}`;
-        const result = await getDocumentAddedEvent(params.hash);
-        if (result && packageDetail) {
-          const { transactionHash } = result;
+        const docAddedData = await getDocumentAddedEvent(params.hash);
+        const docSignedData = await getDocumentSignedEvent(packageDetail.pId);
+
+        if (docAddedData && packageDetail) {
           if (window?.ethereum) {
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const activeAccount = await provider.getSigner().getAddress();
@@ -184,7 +219,8 @@ export default function ViewDetails({ params }: { params: { hash: string } }) {
             ) {
               setVerified(false);
             }
-            setTxHash(transactionHash);
+            setDocAddedTx(docAddedData.transactionHash);
+            setDocSignedTx(docSignedData?.transactionHash);
           }
         }
       };
@@ -221,7 +257,7 @@ export default function ViewDetails({ params }: { params: { hash: string } }) {
       <Sidebar />
       <div className="p-6">
         <div className="mt-16 sm:ml-64">
-          <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden border border-gray-100">
+          <div className="w-full bg-white shadow-lg rounded-lg overflow-hidden border border-gray-100">
             <div className="p-6">
               <div>
                 <h1 className="text-2xl font-semibold text-gray-800 flex items-center">
@@ -281,74 +317,142 @@ export default function ViewDetails({ params }: { params: { hash: string } }) {
             </div>
           </div>
 
-          <div className="mt-10 max-w-6xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden border border-gray-100">
-            <div className="p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                Package Details
-              </h2>
-              <ol className="relative border-s border-gray-200 p-6 ml-2">
-                <li className="mb-10 ms-6">
-                  <span className="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -start-3 ring-8 ring-white"></span>
-                  <h3 className="flex items-center mb-1 text-lg font-semibold text-gray-900">
-                    {`Added and Deployed ${packageDetail.packageType}`}
-                  </h3>
-                  <time className="block mb-2 text-sm font-normal leading-none text-gray-400">{`Executed on ${formatDate(
-                    packageDetail.createdOn
-                  )}`}</time>
-                  <p className="mb-4 text-base font-normal text-gray-500">
-                    {`Added by: ${packageDetail.senderName}`}
-                    <br />
-                    Tx Hash:{" "}
-                    <Link href={`https://sepolia.etherscan.io/tx/${txHash}`}>
-                      {txHash}
-                    </Link>
-                  </p>
-                </li>
-                {packageDetail.employerSignature != "0x" &&
-                packageDetail.employeeSignature != "0x" ? (
-                  <>
-                    <li className="mb-10 ms-6">
-                      <span className="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -start-3 ring-8 ring-white"></span>
-                      <h3 className="mb-1 text-lg font-semibold text-gray-900">
-                        {`${packageDetail.packageType} Signed`}
-                      </h3>
-                      <time className="block mb-2 text-sm font-normal leading-none text-gray-400">{`Executed on ${formatDate(
-                        packageDetail.lastModified
-                      )}`}</time>
-                      <p className="mb-4 text-base font-normal text-gray-500">
-                        {`Signed by: ${packageDetail.recipientName}`}
-                        <br />
-                        Tx Hash:{" "}
+          <div className="flex flex-wrap gap-4 mt-4">
+            <div className="bg-white shadow-lg rounded-lg overflow-hidden border border-gray-100 w-full flex-none md:w-2/5 lg:w-2/5 h-full flex flex-col">
+              <div className="p-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                  Package Details
+                </h2>
+                <ol className="relative border-s border-gray-200 p-6 ml-2">
+                  <li className="mb-10 ms-6">
+                    <span className="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -start-3 ring-8 ring-white"></span>
+                    <h3 className="flex items-center mb-1 text-lg font-semibold text-gray-900">
+                      {`Added and Deployed ${packageDetail.packageType}`}
+                    </h3>
+                    <time className="block mb-2 text-sm font-normal leading-none text-gray-400">{`Executed on ${formatDate(
+                      packageDetail.createdOn
+                    )}`}</time>
+                    <p className="mb-4 text-base font-normal text-gray-500">
+                      {`Added by: ${packageDetail.senderName}`}
+                      <br />
+                      <div className="flex items-center">
+                        <span className="mr-2">Tx Hash: </span>
                         <Link
-                          href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                          className="text-blue-600 hover:text-blue-800"
+                          href={`https://sepolia.etherscan.io/tx/${docAddedTx}`}
                         >
-                          {txHash}
+                          {`${docAddedTx?.slice(0, 13)}...`}
                         </Link>
-                      </p>
-                    </li>
-                    <li className="ms-6">
-                      <span className="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -start-3 ring-8 ring-white"></span>
-                      <h3 className="mb-1 text-lg font-semibold text-gray-900">
-                        {`Verification on ${packageDetail.packageType} Completed`}
-                      </h3>
-                      <time className="block mb-2 text-sm font-normal leading-none text-gray-400">
-                        Verified moments ago
-                      </time>
-                      <p className="mb-4 text-base font-normal text-gray-500">
-                        Download at your fingertips
-                      </p>
-                      <button
-                        type="button"
-                        onClick={handleDownload}
-                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:outline-none focus:ring-gray-100 focus:text-blue-700"
-                      >
-                        <MdOutlineFileDownload size={20} />
-                        <span className="ml-2">Download PDF</span>
-                      </button>
-                    </li>
-                  </>
-                ) : null}
-              </ol>
+                        <button
+                          className="ml-2"
+                          onClick={() => {
+                            if (docAddedTx) {
+                              handleCopyHash(true, docAddedTx);
+                            }
+                          }}
+                        >
+                          {addedCopied ? (
+                            <MdOutlineDoneAll
+                              className={`transition-opacity duration-300 text-blue-400 ${
+                                addedCopied ? "opacity-100" : "opcacity-0"
+                              }`}
+                              size={25}
+                            />
+                          ) : (
+                            <MdContentCopy
+                              className={`transition-opacity duration-300 hover:text-blue-600 ${
+                                addedCopied ? "opacity-0" : "opacity-100"
+                              }`}
+                              size={20}
+                            />
+                          )}
+                        </button>
+                      </div>
+                    </p>
+                  </li>
+                  {packageDetail.employerSignature != "0x" &&
+                  packageDetail.employeeSignature != "0x" ? (
+                    <>
+                      <li className="mb-10 ms-6">
+                        <span className="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -start-3 ring-8 ring-white"></span>
+                        <h3 className="mb-1 text-lg font-semibold text-gray-900">
+                          {`${packageDetail.packageType} Signed`}
+                        </h3>
+                        <time className="block mb-2 text-sm font-normal leading-none text-gray-400">{`Executed on ${formatDate(
+                          packageDetail.lastModified
+                        )}`}</time>
+                        <p className="mb-4 text-base font-normal text-gray-500">
+                          {`Signed by: ${packageDetail.recipientName}`}
+                          <br />
+                          <div className="flex items-center">
+                            <span className="mr-2">Tx Hash: </span>
+                            <Link
+                              className="text-blue-600 hover:text-blue-800"
+                              href={`https://sepolia.etherscan.io/tx/${docSignedTx}`}
+                            >
+                              {`${docSignedTx?.slice(0, 13)}...`}
+                            </Link>
+                            <button
+                              className="ml-2"
+                              onClick={() => {
+                                if (docSignedTx) {
+                                  handleCopyHash(false, docSignedTx);
+                                }
+                              }}
+                            >
+                              {signedCopied ? (
+                                <MdOutlineDoneAll
+                                  className={`transition-opacity duration-300 text-blue-400 ${
+                                    signedCopied ? "opacity-100" : "opcacity-0"
+                                  }`}
+                                  size={25}
+                                />
+                              ) : (
+                                <MdContentCopy
+                                  className={`transition-opacity duration-300 hover:text-blue-600 ${
+                                    signedCopied ? "opacity-0" : "opacity-100"
+                                  }`}
+                                  size={20}
+                                />
+                              )}
+                            </button>
+                          </div>
+                        </p>
+                      </li>
+                      <li className="ms-6">
+                        <span className="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -start-3 ring-8 ring-white"></span>
+                        <h3 className="mb-1 text-lg font-semibold text-gray-900">
+                          {`Verification on ${packageDetail.packageType} Completed`}
+                        </h3>
+                        <time className="block mb-2 text-sm font-normal leading-none text-gray-400">
+                          Verified moments ago
+                        </time>
+                        <p className="mb-4 text-base font-normal text-gray-500">
+                          Download at your fingertips
+                        </p>
+                        <button
+                          type="button"
+                          onClick={handleDownload}
+                          className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:outline-none focus:ring-gray-100 focus:text-blue-700"
+                        >
+                          <MdOutlineFileDownload size={20} />
+                          <span className="ml-2">Download PDF</span>
+                        </button>
+                      </li>
+                    </>
+                  ) : null}
+                </ol>
+              </div>
+            </div>
+
+            <div className="flex-1 bg-white shadow-lg rounded-lg overflow-hidden border border-gray-100 w-full md:w-2/5 lg:w-2/5 flex flex-col">
+              <div className="p-6">
+                <iframe
+                  src={`https://${process.env.NEXT_PUBLIC_THIRDWEB_CLIENT}.ipfscdn.io/ipfs/${params.hash}`}
+                  width="100%"
+                  height="500px"
+                ></iframe>
+              </div>
             </div>
           </div>
         </div>

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -19,6 +19,7 @@
     "axios": "^1.7.2",
     "chart.js": "^4.4.3",
     "chartjs": "^0.3.24",
+    "chartjs-plugin-annotation": "^3.0.1",
     "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
     "ethers": "^5",
@@ -28,6 +29,7 @@
     "mongoose": "^8.5.0",
     "moralis": "^2.26.9",
     "next": "^14.2.5",
+    "nodemailer": "^6.9.14",
     "pino-pretty": "^11.2.1",
     "react": "^18",
     "react-chartjs-2": "^5.2.0",
